@@ -1,3 +1,10 @@
+#===============================================================================
+# Custom eshop settings
+#===============================================================================
+
+API_NAME = "eshop"
+API_VERSION = 0
+
 # Django settings for basesite project.
 
 DEBUG = True
@@ -115,6 +122,8 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'eshop',
+    'rest_framework',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
