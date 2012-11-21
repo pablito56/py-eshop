@@ -15,6 +15,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+
 class RootController(APIView):
     '''Controller for root URI
     '''
@@ -26,17 +27,18 @@ class RootController(APIView):
                 'items': reverse('itemlist', request=request, format=format)}
         return Response(data)
 
+
 class ItemListController(APIView):
-    itemlist = [{
-      "id": "1",
-      "name": "Super item",
-      "description": "This is the most amazing super item",
-      "category": "Strange items",
-      "price": 17.99,
-      "stock": 3,
-      "purchases": 27,
-      "updated": "2012-11-16T19:10:34"
-    }]
+    itemlist = [{"id": "1",
+                 "name": "Super item",
+                 "description": "This is the most amazing super item",
+                 "category": "Strange items",
+                 "price": 17.99,
+                 "stock": 3,
+                 "purchases": 27,
+                 "updated": "2012-11-16T19:10:34"
+                 }]
+
     def get(self, request):
         return Response(self.itemlist)
 
@@ -44,21 +46,22 @@ class ItemListController(APIView):
         if not 'name' in request.DATA:
             raise ParseError()
         item = request.DATA
-        item['id']=str(len(self.itemlist) + 1)
+        item['id'] = str(len(self.itemlist) + 1)
         self.itemlist.append(item)
         return Response(item)
 
+
 class ItemController(APIView):
-    itemlist = [{
-      "id": "1",
-      "name": "Super item",
-      "description": "This is the most amazing super item",
-      "category": "Strange items",
-      "price": 17.99,
-      "stock": 3,
-      "purchases": 27,
-      "updated": "2012-11-16T19:10:34"
-    }]
+    itemlist = [{"id": "1",
+                 "name": "Super item",
+                 "description": "This is the most amazing super item",
+                 "category": "Strange items",
+                 "price": 17.99,
+                 "stock": 3,
+                 "purchases": 27,
+                 "updated": "2012-11-16T19:10:34"
+                 }]
+
     def get(self, request, item_id):
         result = filter(lambda x: x['id'] == item_id, self.itemlist)
         if not result:
