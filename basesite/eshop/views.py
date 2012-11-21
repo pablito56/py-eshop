@@ -66,7 +66,7 @@ class ItemController(APIView):
         result = filter(lambda x: x['id'] == item_id, self.itemlist)
         if not result:
             raise Http404()
-        return Response(result)
+        return Response(result[0])
 
     def put(self, request, item_id):
         result = filter(lambda x: x['id'] == item_id, self.itemlist)
