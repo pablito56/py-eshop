@@ -79,4 +79,5 @@ class ItemController(APIView):
         result = filter(lambda x: x['id'] == item_id, self.itemlist)
         if not result:
             raise Http404()
+        self.itemlist.remove(result[0])
         return Response(status=status.HTTP_204_NO_CONTENT)
