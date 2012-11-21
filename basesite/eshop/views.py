@@ -13,15 +13,17 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 from rest_framework import status
+from rest_framework.reverse import reverse
 
 class RootController(APIView):
     '''Controller for root URI
     '''
 
-    def get(self, request):
+    def get(self, request, format=None):
         '''Get the name and version of the API
         '''
-        data = {"name": settings.API_NAME, "version": settings.API_VERSION}
+        data = {"name": settings.API_NAME, "version": settings.API_VERSION,
+                'items': reverse('itemlist', request=request, format=format)}
         return Response(data)
 
 class ItemListController(APIView):
