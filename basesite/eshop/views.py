@@ -14,6 +14,8 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 from rest_framework import status
 from rest_framework.reverse import reverse
+# Custom eshop imports
+from services import ItemsService
 
 
 class RootController(APIView):
@@ -28,56 +30,48 @@ class RootController(APIView):
         return Response(data)
 
 
-class ItemListController(APIView):
-    itemlist = [{"id": "1",
-                 "name": "Super item",
-                 "description": "This is the most amazing super item",
-                 "category": "Strange items",
-                 "price": 17.99,
-                 "stock": 3,
-                 "purchases": 27,
-                 "updated": "2012-11-16T19:10:34"
-                 }]
+itemlist = [{"id": "1",
+             "name": "Super item",
+             "description": "This is the most amazing super item",
+             "category": "Strange items",
+             "price": 17.99,
+             "stock": 3,
+             "purchases": 27,
+             "updated": "2012-11-16T19:10:34"
+             }]
 
+
+class ItemListController(APIView):
     def get(self, request):
-        return Response(self.itemlist)
+        return Response(itemlist)
 
     def post(self, request):
         if not 'name' in request.DATA:
             raise ParseError()
         item = request.DATA
-        item['id'] = str(len(self.itemlist) + 1)
-        self.itemlist.append(item)
-        return Response(item)
+        item['id'] = str(len(itemlist) + 1)
+        itemlist.append(item)
+        headers = {'Location': reverse('itemdetail', request=request, args=[item['id']])}
+        return Response(item, status.HTTP_201_CREATED, headers=headers)
 
 
 class ItemController(APIView):
-    itemlist = [{"id": "1",
-                 "name": "Super item",
-                 "description": "This is the most amazing super item",
-                 "category": "Strange items",
-                 "price": 17.99,
-                 "stock": 3,
-                 "purchases": 27,
-                 "updated": "2012-11-16T19:10:34"
-                 }]
-
     def get(self, request, item_id):
-        result = filter(lambda x: x['id'] == item_id, self.itemlist)
+        result = filter(lambda x: x['id'] == item_id, itemlist)
         if not result:
             raise Http404()
         return Response(result[0])
 
     def put(self, request, item_id):
-        result = filter(lambda x: x['id'] == item_id, self.itemlist)
+        result = filter(lambda x: x['id'] == item_id, itemlist)
         if not result:
             raise Http404()
         result[0].update(request.DATA)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def delete(self, request, item_id):
-        result = filter(lambda x: x['id'] == item_id, self.itemlist)
+        result = filter(lambda x: x['id'] == item_id, itemlist)
         if not result:
             raise Http404()
-        self.itemlist.remove(result[0])
+        itemlist.remove(result[0])
         return Response(status=status.HTTP_204_NO_CONTENT)
