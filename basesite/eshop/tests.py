@@ -39,74 +39,87 @@ class RootControllerTest(TestCase):
 class ItemListControllerTest(TestCase):
     itemspath = root + 'items/'
 
+    @classmethod
+    def setUpClass(cls):
+        # Output whole diff when asserts fail
+        cls.maxDiff = None
+        # Output diff always when asserts fail
+        cls.longMessage = True
+
     def test_get_list(self):
-        '''Test GET Items list
+        '''ItemListControllerTest test GET Items list
         '''
         response = self.get(self.itemspath)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_post(self):
-        '''Test POST Item
+        '''ItemListControllerTest test POST Item
         '''
         item = {"name": "Super item", "description": "This is the most amazing super item",
                 "category": "Strange items", "price": 17.99, "stock": 3
                 }
         response = self.post(self.itemspath, data=json.dumps(item))
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
 
     def test_post_invalid(self):
-        '''Test POST Item error
+        '''ItemListControllerTest test POST Item error
         '''
         item = {}
         response = self.post(self.itemspath, item)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_delete(self):
-        '''Test DELETE Items list error
+        '''ItemListControllerTest test DELETE Items list error
         '''
         response = self.delete(self.itemspath)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class ItemControllerTest(ItemListControllerTest):
+
     def test_get(self):
-        '''Test GET single Item
+        '''ItemControllerTest test GET single Item
         '''
         response = self.get(self.itemspath + '1/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_not_found(self):
-        '''Test GET single Item not found error
+        '''ItemControllerTest test GET single Item not found error
         '''
-        response = self.get(self.itemspath + '2/')
+        response = self.get(self.itemspath + '222/')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_put(self):
-        '''Test PUT single Item
+        '''ItemControllerTest test PUT single Item
         '''
         response = self.put(self.itemspath + '1/', json.dumps({'description': 'new description'}))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.content)
 
     def test_put_not_found(self):
-        '''Test PUT single Item not found error
+        '''ItemControllerTest test PUT single Item not found error
         '''
         response = self.put(self.itemspath + '1111/', json.dumps({'description': 'new description'}))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.content)
 
     def test_delete(self):
-        '''Test DELETE single Item
+        '''ItemControllerTest test DELETE single Item
         '''
-        response = self.delete(self.itemspath + '1/')
+        item = {"name": "Super item 2", "description": "This is the most amazing super item 2",
+                "category": "Strange items 2", "price": 17.99, "stock": 3
+                }
+        response = self.post(self.itemspath, data=json.dumps(item))
+        new_item = json.loads(response.content)
+        response = self.delete(self.itemspath + new_item['id'] + '/')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_not_found(self):
-        '''Test DELETE single Item not found
+        '''ItemControllerTest test DELETE single Item not found
         '''
-        response = self.delete(self.itemspath + '2/')
+        response = self.delete(self.itemspath + '157/')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_post(self):
-        '''Test POST single Item error
+        '''ItemControllerTest test POST single Item error
         '''
         response = self.post(self.itemspath + '1/')
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
