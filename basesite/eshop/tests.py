@@ -28,6 +28,7 @@ class TestCase(DjangoTestCase):
     def setUp(self):
         global dbconn
         dbconn.drop_collection(settings.ITEMS_COLL)
+        dbconn.drop_collection(settings.IDS_COLL)
 
     def get(self, *args, **kwargs):
         return self.client.get(*args, content_type='application/json', **kwargs)
@@ -65,11 +66,16 @@ class ItemListControllerTest(TestCase):
     def test_post(self):
         '''ItemListControllerTest test POST Item
         '''
-        item = {"name": "Super item", "description": "This is the most amazing super item",
+        item = {"name": "Super item 12345", "description": "This is the most amazing super item 12345",
                 "category": "Strange items", "price": 17.99, "stock": 3
                 }
         response = self.post(self.itemspath, data=json.dumps(item))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        db_item = dbconn[settings.ITEMS_COLL].find_one({'id': 1})
+        del db_item['_id']
+        del db_item['id']
+        del db_item['updated']
+        self.assertEqual(db_item, item)
 
     def test_post_invalid(self):
         '''ItemListControllerTest test POST Item error
@@ -110,6 +116,12 @@ class ItemControllerTest(ItemListControllerTest):
         response = self.get(self.itemspath + '222/')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_get_wrong_id(self):
+        '''ItemControllerTest test GET single Item not found error for wrong id format
+        '''
+        response = self.get(self.itemspath + 'abcd')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_put(self):
         '''ItemControllerTest test PUT single Item
         '''
@@ -124,8 +136,37 @@ class ItemControllerTest(ItemListControllerTest):
                 "updated": datetime.now()
                 }
         dbconn[settings.ITEMS_COLL].insert(item)
-        response = self.put(self.itemspath + '1/', json.dumps({'description': 'new description'}))
+        expected_desc = 'new description'
+        response = self.put(self.itemspath + '1/', json.dumps({'description': expected_desc}))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.content)
+        db_item = dbconn[settings.ITEMS_COLL].find_one({'id': 1})
+        self.assertTrue(db_item["updated"] >= item["updated"])
+        self.assertEqual(db_item["description"], expected_desc)
+
+    def test_put_stock(self):
+        '''ItemControllerTest test PUT single Item incrementing stock
+        '''
+        global dbconn
+        item = {"id": 1,
+                "name": "Super item",
+                "description": "This is the most amazing super item",
+                "category": "Strange items",
+                "price": 17.99,
+                "stock": 3,
+                "purchases": 27,
+                "updated": datetime.now()
+                }
+        dbconn[settings.ITEMS_COLL].insert(item)
+        expected_cat = 'new cat'
+        new_stock = -2
+        response = self.put(self.itemspath + '1/', json.dumps({'category': expected_cat,
+                                                               'stock': new_stock}))
+        expected_stock = item['stock'] + new_stock
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.content)
+        db_item = dbconn[settings.ITEMS_COLL].find_one({'id': 1})
+        self.assertTrue(db_item["updated"] >= item["updated"])
+        self.assertEqual(db_item["category"], expected_cat)
+        self.assertEqual(db_item["stock"], expected_stock)
 
     def test_put_not_found(self):
         '''ItemControllerTest test PUT single Item not found error
@@ -133,21 +174,41 @@ class ItemControllerTest(ItemListControllerTest):
         response = self.put(self.itemspath + '1111/', json.dumps({'description': 'new description'}))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.content)
 
+    def test_put_wrong_id(self):
+        '''ItemControllerTest test PUT single Item not found error for wrong id format
+        '''
+        response = self.put(self.itemspath + 'xyz', json.dumps({'description': 'new description'}))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.content)
+
     def test_delete(self):
         '''ItemControllerTest test DELETE single Item
         '''
-        item = {"name": "Super item 2", "description": "This is the most amazing super item 2",
-                "category": "Strange items 2", "price": 17.99, "stock": 3
+        global dbconn
+        item = {"id": 1,
+                "name": "Super item",
+                "description": "This is the most amazing super item",
+                "category": "Strange items",
+                "price": 17.99,
+                "stock": 3,
+                "purchases": 27,
+                "updated": datetime.now()
                 }
-        response = self.post(self.itemspath, data=json.dumps(item))
-        new_item = json.loads(response.content)
-        response = self.delete(self.itemspath + str(new_item['id']) + '/')
+        dbconn[settings.ITEMS_COLL].insert(item)
+        response = self.delete(self.itemspath + str(item['id']))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # Check DB content
+        self.assertEqual(dbconn[settings.ITEMS_COLL].count(), 0)
 
     def test_delete_not_found(self):
         '''ItemControllerTest test DELETE single Item not found
         '''
         response = self.delete(self.itemspath + '157/')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_wrong_id(self):
+        '''ItemControllerTest test DELETE single Item not found for wrong id format
+        '''
+        response = self.delete(self.itemspath + 'klm')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_post(self):

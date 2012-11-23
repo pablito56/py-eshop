@@ -125,11 +125,21 @@ class ItemsDao(BaseDao):
         if "stock" in doc:
             db_doc["$inc"] = {"stock": doc["stock"]}
             del doc["stock"]
-        return self.dbcoll.update({"id": id}, db_doc, upsert=False, safe=safe)
+        res = self.dbcoll.update({"id": id}, db_doc, upsert=False, safe=safe)
+        if safe:
+            if res.get('ok', False) and res.get('n', 0) == 1 and res.get('updatedExisting', False):
+                return True
+            return False
+        return True
 
     def remove(self, id, safe=True):
         '''Remove one document by its id
         :param id: id of the Item to remove
         :returns remove result
         '''
-        return self.dbcoll.remove({"id": id}, safe=safe)
+        res = self.dbcoll.remove({"id": id}, safe=safe)
+        if safe:
+            if res.get('ok', False) and res.get('n', 0) == 1:
+                return True
+            return False
+        return True
