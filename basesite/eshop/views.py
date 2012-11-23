@@ -16,6 +16,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 # Custom eshop imports
 from services import ItemsService
+from serializers import ItemSerializer
 
 
 class RootController(APIView):
@@ -38,6 +39,9 @@ class ItemListController(APIView):
         return Response(items_service.get_all())
 
     def post(self, request):
+        ser_item = ItemSerializer(data=request.DATA)
+        if not ser_item.is_valid():
+            return Response({"msg": "Invalid incoming Item Json"}, status.HTTP_406_NOT_ACCEPTABLE)
         item = items_service.create(request.DATA)
         headers = {'Location': reverse('itemdetail', request=request, args=[item['id']])}
         return Response(item, status.HTTP_201_CREATED, headers=headers)
