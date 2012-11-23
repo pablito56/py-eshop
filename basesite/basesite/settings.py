@@ -5,6 +5,17 @@
 API_NAME = "eshop"
 API_VERSION = 0
 
+MONGODB = {'hosts': ['localhost:27017', ],
+           'dbname': API_NAME,
+           'savemode': False,
+           'slave_ok': True,
+           'replicaset': '',
+           'autostart': True
+           }
+
+ITEMS_COLL = "items"
+IDS_COLL = "ids"
+
 # Django settings for basesite project.
 
 DEBUG = True
