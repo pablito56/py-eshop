@@ -26,7 +26,7 @@ class ItemsService(object):
     dao = ItemsDao()
 
     def create(self, new):
-        '''Create a new Resource
+        '''Create a new Item
         '''
         for req_field in self.required:
             if not req_field in new:
@@ -35,12 +35,12 @@ class ItemsService(object):
         return self.dao.insert(new)
 
     def get_all(self):
-        '''Retrieve all Resources
+        '''Retrieve all Items
         '''
         return list(self.dao.find_all())
 
     def get_one(self, resource_id):
-        '''Retrieve single Resource
+        '''Retrieve single Item
         '''
         try:
             resource = self.dao.find(int(resource_id))
@@ -51,31 +51,23 @@ class ItemsService(object):
         raise Http404()
 
     def update(self, resource_id, new):
-        '''Update one Resource
+        '''Update one Item
         '''
-        try:
-            old = self.dao.find(int(resource_id))
-        except ValueError:
-            raise Http404()
-        if not old:
-            raise Http404()
         new["updated"] = datetime.now()
         try:
-            self.dao.update(int(resource_id), new)
+            if not self.dao.update(int(resource_id), new):
+                raise Http404()
+            return True
         except ValueError:
             raise Http404()
         return True
 
     def delete(self, resource_id):
-        '''Delete one Resource
+        '''Delete one Item
         '''
         try:
-            old = self.dao.find(int(resource_id))
-        except ValueError:
-            raise Http404()
-        if not old:
-            raise Http404()
-        try:
-            return self.dao.remove(int(resource_id))
+            if not self.dao.remove(int(resource_id)):
+                raise Http404()
+            return True
         except ValueError:
             raise Http404()

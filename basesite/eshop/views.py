@@ -39,6 +39,8 @@ class ItemListController(APIView):
 
     def post(self, request):
         item = items_service.create(request.DATA)
+        if item is None:
+            return Response({"msg": "Item 'name' already exists"}, status.HTTP_409_CONFLICT)
         headers = {'Location': reverse('itemdetail', request=request, args=[item['id']])}
         return Response(item, status.HTTP_201_CREATED, headers=headers)
 
