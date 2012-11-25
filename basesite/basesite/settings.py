@@ -14,6 +14,7 @@ MONGODB = {'hosts': ['localhost:27017', ],
            }
 
 ITEMS_COLL = "items"
+USERS_COLL = "users"
 IDS_COLL = "ids"
 
 # Django settings for basesite project.

@@ -143,3 +143,77 @@ class ItemsDao(BaseDao):
                 return True
             return False
         return True
+
+class UsersDao(BaseDao):
+    '''Dao to handle 'items' documents
+    '''
+    coll = settings.USERS_COLL
+
+    def __init__(self, *args, **kwargs):
+        '''Instantiate DAO and set unique index for 'name'
+        '''
+        super(UsersDao, self).__init__(*args, **kwargs)
+        keys_list = [("name", ASCENDING), ("surname", ASCENDING)]
+        self.dbcoll.ensure_index(keys_list, name='unique_name_surname', unique=True)
+
+    def insert(self, user_doc, safe=True):
+        '''Insert a new User document
+        :param item_doc: document to store to the DB
+        :param safe: validate operation (slower)
+        :raises DuplicateKeyError with safe=True
+        '''
+        user_doc.pop("_id", None)
+        user_doc["id"] = self._get_id_value()
+        self.dbcoll.insert(user_doc, safe=safe)
+        user_doc.pop("_id", None)
+        return user_doc
+
+    def find(self, id):
+        '''Find one item document by its ids
+        :param id: id values to retrieve
+        :returns retrieved document or None
+        '''
+        return self.dbcoll.find_one({"id": id}, {"_id": 0})
+
+    def find_all(self):
+        '''Find Users documents
+        :returns retrieved documents cursor
+        '''
+        return self.dbcoll.find(fields={"_id": 0})
+
+    def update(self, id, doc, safe=True):
+        '''Update a single DB document
+        :param id: id of the User to be updated
+        :param doc: new Item document
+        :param safe: validate operation (slower)
+        '''
+        doc.pop("_id", None)
+        db_doc = {"$set": doc}
+        res = self.dbcoll.update({"id": id}, db_doc, upsert=False, safe=safe)
+        if safe:
+            if res.get('ok', False) and res.get('n', 0) == 1 and res.get('updatedExisting', False):
+                return True
+            return False
+        return True
+
+    def remove(self, id, safe=True):
+        '''Remove one document by its id
+        :param id: id of the User to remove
+        :returns remove result
+        '''
+        res = self.dbcoll.remove({"id": id}, safe=safe)
+        if safe:
+            if res.get('ok', False) and res.get('n', 0) == 1:
+                return True
+            return False
+        return True
+
+    def add_to_cart(self, user_id, item_id, name, price, quantity):
+        res = self.dbcoll.find_and_modify(query={'id': user_id, 'cart.id': item_id}, update={'$set': {'cart.$.name': name, 'cart.$.price': price}, '$inc':
+                    {'cart.$.quantity': quantity}}, safe=True, new=True)
+        if res:
+            return res['cart']
+        doc = {'id': item_id, 'name': name, 'price': price, 'quantity': quantity}
+        res = self.dbcoll.update({'id': user_id}, {'$addToSet': {'cart': doc}}, safe=True)
+        if res.get('ok', False) and res.get('n', 0) == 1 and res.get('updatedExisting', False):
+            return doc

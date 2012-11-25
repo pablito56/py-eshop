@@ -47,3 +47,44 @@ class ItemUpdateSerializer(serializers.Serializer):
                 if f in attrs:
                     return attrs
         raise serializers.ValidationError("No Item fields provided for update")
+
+class UserSerializer(serializers.Serializer):
+    '''Serializer fot User documents
+    '''
+    id = serializers.IntegerField(required=False)
+    name = serializers.CharField(max_length=150)
+    surname = serializers.CharField(max_length=150)
+    password = serializers.CharField(max_length=150)
+    email = serializers.EmailField(max_length=150)
+    address = serializers.CharField(max_length=150)
+
+    def restore_object(self, attrs, instance=None):
+        """Create or update a new User (dict) instance.
+        """
+        return dict(attrs)
+
+class UserUpdateSerializer(serializers.Serializer):
+    '''Serializer fot User documents
+    '''
+    id = serializers.IntegerField(required=False)
+    name = serializers.CharField(max_length=150, required=False)
+    surname = serializers.CharField(max_length=150, required=False)
+    password = serializers.CharField(max_length=150, required=False)
+    email = serializers.EmailField(max_length=150, required=False)
+    address = serializers.CharField(max_length=150, required=False)
+
+    def restore_object(self, attrs, instance=None):
+        """Create or update a new User (dict) instance.
+        """
+        return dict(attrs)
+
+class CartItemSerializer(serializers.Serializer):
+    '''Serializer for Item's for cart
+    '''
+    id = serializers.IntegerField(required=True)
+    quantity = serializers.IntegerField(required=True)
+
+    def restore_object(self, attrs, instance=None):
+        """Create or update a new Item (dict) instance.
+        """
+        return dict(attrs)

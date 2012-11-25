@@ -12,7 +12,7 @@ from django.http import Http404
 # Django ReST fwk imports
 from rest_framework.exceptions import ParseError
 # Custom eshop imports
-from daos import ItemsDao
+from daos import ItemsDao, UsersDao
 
 
 class ItemsService(object):
@@ -70,3 +70,21 @@ class ItemsService(object):
             return True
         except ValueError:
             raise Http404()
+
+class UsersService(ItemsService):
+    required = ["name", "password", "email"]
+    not_modify = ["id", "purchases"]
+    update_incrementally = []
+
+    dao = UsersDao()
+
+    def add_to_cart(self, user_id, item, quantity):
+        doc = self.dao.add_to_cart(int(user_id), item['id'], item['name'], item['price'], quantity)
+        if not doc:
+            raise Http404('User not exists)')
+        return doc
+
+    def get_cart(self, user_id):
+        return self.get_one(user_id).get('cart', [])
+
+

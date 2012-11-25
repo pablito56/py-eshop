@@ -29,6 +29,7 @@ class TestCase(DjangoTestCase):
         global dbconn
         dbconn.drop_collection(settings.ITEMS_COLL)
         dbconn.drop_collection(settings.IDS_COLL)
+        dbconn.drop_collection(settings.USERS_COLL)
 
     def get(self, *args, **kwargs):
         return self.client.get(*args, content_type='application/json', **kwargs)
@@ -224,6 +225,118 @@ class ItemControllerTest(TestCase):
         response = self.post(self.itemspath + '1/')
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
+class UserListControllerTest(TestCase):
+    userspath = root + 'users/'
+
+    def test_get_list(self):
+        '''ItemListControllerTest test GET Items list
+        '''
+        response = self.get(self.userspath)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_post(self):
+        '''ItemListControllerTest test POST Item
+        '''
+        user = { "name": "John",
+                "surname": "Smith",
+                "password": "d1ff1Qltp455w0rd",
+                "email": "love_pocahontas@gmail.com",
+                "address": "Pocahontas village, third hut, new world",
+                "purchases": 4
+                }
+        response = self.post(self.userspath, data=json.dumps(user))
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+
+    def test_post_invalid(self):
+        '''ItemListControllerTest test POST Item error
+        '''
+        user = {}
+        response = self.post(self.userspath, user)
+        self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
+
+    def test_delete(self):
+        '''ItemListControllerTest test DELETE Items list error
+        '''
+        response = self.delete(self.userspath)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+class UserControllerTest(TestCase):
+    userspath = root + 'users/'
+
+    def test_get(self):
+        '''UserControllerTest test GET single User
+        '''
+        global dbconn
+        user = {"id": 1,
+                "name": "John",
+                "surname": "Smith",
+                "password": "d1ff1Qltp455w0rd",
+                "email": "love_pocahontas@gmail.com",
+                "address": "Pocahontas village, third hut, new world",
+                "purchases": 4,
+                "updated": datetime.now()
+                }
+        dbconn[settings.USERS_COLL].insert(user)
+        response = self.get(self.userspath + '1')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_not_found(self):
+        '''UserControllerTest test GET single User not found error
+        '''
+        response = self.get(self.userspath + '222/')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_put(self):
+        '''UserControllerTest test PUT single User
+        '''
+        global dbconn
+        user = {"id": 1,
+                "name": "John",
+                "surname": "Smith",
+                "password": "d1ff1Qltp455w0rd",
+                "email": "love_pocahontas@gmail.com",
+                "address": "Pocahontas village, third hut, new world",
+                "purchases": 4,
+                "updated": datetime.now()
+                }
+        dbconn[settings.USERS_COLL].insert(user)
+        response = self.put(self.userspath + '1/', json.dumps({'address': 'new description'}))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.content)
+
+    def test_put_not_found(self):
+        '''UserControllerTest test PUT single Item not found error
+        '''
+        response = self.put(self.userspath + '1111/', json.dumps({'address': 'new description'}))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.content)
+
+    def test_delete(self):
+        '''UserControllerTest test DELETE single User
+        '''
+        user = {"id": "1",
+                "name": "John",
+                "surname": "Smith",
+                "password": "any",
+                "email": "love_pocahontas@gmail.com",
+                "address": "Pocahontas village, third hut, new world",
+                "purchases": 4,
+                }
+        response = self.post(self.userspath, data=json.dumps(user))
+        new_user = json.loads(response.content)
+        response = self.delete(self.userspath + str(new_user['id']) + '/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_delete_not_found(self):
+        '''UserControllerTest test DELETE single User not found
+        '''
+        response = self.delete(self.userspath + '157/')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_post(self):
+        '''UserControllerTest test POST single User error
+        '''
+        response = self.post(self.userspath + '1/')
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
 
 def setUpModule():
     '''
@@ -244,7 +357,7 @@ def setUpModule():
 #    print "CONNECTED TO DB", settings.MONGODB['DBNAME'], "@", settings.MONGODB['HOSTS'][0]
 
 
-def tearDownModule(cls):
+def tearDownModule():
     global conn
     pass
 #    conn.drop_database(settings.MONGODB['dbname'])
