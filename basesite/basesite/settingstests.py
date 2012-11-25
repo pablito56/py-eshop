@@ -22,7 +22,7 @@ NOSE_ARGS = ['-s',
              '--cover-branches',
              '--with-cov',
              '--cover-xml',
-             '--cover-package=frappe_api',
+             '--cover-package',
              '--cover-xml-file=../coverage.xml',
              '--with-xunit',
              '--xunit-file=../nosetests.xml'

@@ -9,7 +9,6 @@ Created on Nov 21, 2012
 from datetime import datetime
 # Django imports
 from django.http import Http404
-from django.conf import settings
 # Django ReST fwk imports
 from rest_framework.exceptions import ParseError
 # Custom eshop imports

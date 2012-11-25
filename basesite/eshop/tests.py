@@ -82,7 +82,7 @@ class ItemListControllerTest(TestCase):
         '''
         item = {}
         response = self.post(self.itemspath, item)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
 
     def test_delete(self):
         '''ItemListControllerTest test DELETE Items list error
@@ -91,7 +91,8 @@ class ItemListControllerTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-class ItemControllerTest(ItemListControllerTest):
+class ItemControllerTest(TestCase):
+    itemspath = root + 'items/'
 
     def test_get(self):
         '''ItemControllerTest test GET single Item
@@ -179,6 +180,12 @@ class ItemControllerTest(ItemListControllerTest):
         '''
         response = self.put(self.itemspath + 'xyz', json.dumps({'description': 'new description'}))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.content)
+
+    def test_put_empty(self):
+        '''ItemControllerTest test PUT empty Item
+        '''
+        response = self.put(self.itemspath + 'doesntmatter', json.dumps({}))
+        self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE, response.content)
 
     def test_delete(self):
         '''ItemControllerTest test DELETE single Item
