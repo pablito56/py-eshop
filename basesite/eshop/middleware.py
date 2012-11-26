@@ -3,6 +3,7 @@ u'''
 Created on Nov 19, 2012
 
 @author: pev
+<<<<<<< HEAD
 @author: jacobcr
 '''
 # Django imports
