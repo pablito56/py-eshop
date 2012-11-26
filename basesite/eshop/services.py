@@ -87,4 +87,12 @@ class UsersService(ItemsService):
     def get_cart(self, user_id):
         return self.get_one(user_id).get('cart', [])
 
+    def get_one_cart(self, user_id, cart_id):
+        doc = self.dao.get_cart_item(user_id, cart_id)
+        if not doc:
+            raise Http404('Item not found in cart')
+        return doc['cart'][0]
 
+    def delete_cart(self, user_id, cart_id):
+        if not self.dao.delete_cart_item(user_id, cart_id):
+            raise Http404()

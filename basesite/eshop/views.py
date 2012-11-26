@@ -125,21 +125,9 @@ class CartListController(APIView):
 
 
 class CartController(APIView):
-    pass
-#    def get(self, request, Cart_id):
-#        return Response(Carts_service.get_one(Cart_id))
-#
-#    def put(self, request, Cart_id):
-#        Cart_ser = CartUpdateSerializer(data=request.DATA)
-#        if not Cart_ser.is_valid():
-#            errs_lst = [": ".join((wrong, " ".join(Cart_ser.errors[wrong]))) for wrong in Cart_ser.errors]
-#            msg = ", ".join(errs_lst)
-#            return Response({"msg": "Wrong input. " + msg}, status.HTTP_406_NOT_ACCEPTABLE)
-#        if Cart_ser.object:
-#            Carts_service.update(Cart_id, Cart_ser.object)
-#
-#        return Response(status=status.HTTP_204_NO_CONTENT)
-#
-#    def delete(self, request, Cart_id):
-#        Carts_service.delete(Cart_id)
-#        return Response(status=status.HTTP_204_NO_CONTENT)
+    def get(self, request, user_id, cart_id):
+        return Response(users_service.get_one_cart(user_id, cart_id))
+
+    def delete(self, request, user_id, cart_id):
+        users_service.delete_cart(user_id, cart_id)
+        return Response(status=status.HTTP_204_NO_CONTENT)

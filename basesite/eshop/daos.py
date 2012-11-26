@@ -217,3 +217,12 @@ class UsersDao(BaseDao):
         res = self.dbcoll.update({'id': user_id}, {'$addToSet': {'cart': doc}}, safe=True)
         if res.get('ok', False) and res.get('n', 0) == 1 and res.get('updatedExisting', False):
             return doc
+
+    def get_cart_item(self, user_id, cart_id):
+        return self.dbcoll.find_one({"id": int(user_id), "cart.id": int(cart_id)})
+
+    def delete_cart_item(self, user_id, cart_id):
+        res = self.dbcoll.update({"id":int(user_id), "cart.id": int(cart_id)}, { "$pull": {"cart": {"id":2}}}, safe=True)
+        if res.get('ok', False) and res.get('n', 0) == 1 and res.get('updatedExisting', False):
+            return True
+        return False
