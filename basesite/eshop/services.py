@@ -9,8 +9,6 @@ Created on Nov 21, 2012
 from datetime import datetime
 # Django imports
 from django.http import Http404
-# Django ReST fwk imports
-from rest_framework.exceptions import ParseError
 # Custom eshop imports
 from daos import ItemsDao, UsersDao, PurchaseDao
 
@@ -87,10 +85,6 @@ class UsersService(ItemsService):
             raise Http404()
 
 class PurchasesService(ItemsService):
-    required = ["name", "password", "email"]
-    not_modify = ["id", "purchases"]
-    update_incrementally = []
-
     pdao = PurchaseDao()
     udao = UsersDao()
 
