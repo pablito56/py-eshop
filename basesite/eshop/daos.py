@@ -222,7 +222,27 @@ class UsersDao(BaseDao):
         return self.dbcoll.find_one({"id": int(user_id), "cart.id": int(cart_id)})
 
     def delete_cart_item(self, user_id, cart_id):
-        res = self.dbcoll.update({"id":int(user_id), "cart.id": int(cart_id)}, { "$pull": {"cart": {"id":2}}}, safe=True)
+        res = self.dbcoll.update({"id":int(user_id), "cart.id": int(cart_id)}, { "$pull": {"cart": {"id": int(cart_id)}}}, safe=True)
         if res.get('ok', False) and res.get('n', 0) == 1 and res.get('updatedExisting', False):
             return True
         return False
+
+    def delete_cart(self, user_id):
+        res = self.dbcoll.update({"id":int(user_id)}, {"$set": {"cart": []}}, safe=True)
+        if res.get('ok', False) and res.get('n', 0) == 1 and res.get('updatedExisting', False):
+            return True
+        return False
+
+
+class PurchaseDao(BaseDao):
+    coll = settings.PURCHASES_COLL
+
+    def get_by_user(self, user_id):
+        return self.dbcoll.find({"user_id": int(user_id)}, fields={"_id":0})
+
+    def insert(self, doc):
+        doc.pop("_id", None)
+        doc["id"] = self._get_id_value()
+        self.dbcoll.insert(doc, safe=True)
+        doc.pop("_id", None)
+        return doc

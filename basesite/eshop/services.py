@@ -12,24 +12,17 @@ from django.http import Http404
 # Django ReST fwk imports
 from rest_framework.exceptions import ParseError
 # Custom eshop imports
-from daos import ItemsDao, UsersDao
+from daos import ItemsDao, UsersDao, PurchaseDao
 
 
 class ItemsService(object):
     '''Business logic to handle Items
     '''
-    required = ["name", "price", "stock"]
-    not_modify = ["id", "purchases"]
-    update_incrementally = ["stock"]
-
     dao = ItemsDao()
 
     def create(self, new):
         '''Create a new Item
         '''
-        for req_field in self.required:
-            if not req_field in new:
-                raise ParseError("Not found required field '{0}'".format(req_field))
         new["updated"] = datetime.now()
         return self.dao.insert(new)
 
@@ -72,10 +65,6 @@ class ItemsService(object):
             raise Http404()
 
 class UsersService(ItemsService):
-    required = ["name", "password", "email"]
-    not_modify = ["id", "purchases"]
-    update_incrementally = []
-
     dao = UsersDao()
 
     def add_to_cart(self, user_id, item, quantity):
@@ -96,3 +85,27 @@ class UsersService(ItemsService):
     def delete_cart(self, user_id, cart_id):
         if not self.dao.delete_cart_item(user_id, cart_id):
             raise Http404()
+
+class PurchasesService(ItemsService):
+    required = ["name", "password", "email"]
+    not_modify = ["id", "purchases"]
+    update_incrementally = []
+
+    pdao = PurchaseDao()
+    udao = UsersDao()
+
+    def get_all(self, user_id):
+        return list(self.pdao.get_by_user(int(user_id))) or []
+
+    def buy(self, user_id):
+        user_id = int(user_id)
+        cart = self.udao.find(user_id).get('cart', [])
+        if not cart:
+            raise Http404('No cart for user')
+
+        total = sum([x['price'] * x['quantity'] for x in cart])
+        items = [x['id'] for x in cart]
+        created = datetime.now()
+        purchase = dict(total=total, items=items, created=created, user_id=user_id)
+        self.udao.delete_cart(user_id)
+        return self.pdao.insert(purchase)

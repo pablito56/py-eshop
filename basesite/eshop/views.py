@@ -14,7 +14,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 # Custom eshop imports
 from serializers import ItemSerializer, ItemUpdateSerializer, UserSerializer, UserUpdateSerializer, CartItemSerializer
-from services import ItemsService, UsersService
+from services import ItemsService, UsersService, PurchasesService
 
 
 class RootController(APIView):
@@ -32,6 +32,7 @@ class RootController(APIView):
 
 items_service = ItemsService()
 users_service = UsersService()
+purchases_service = PurchasesService()
 
 
 class ItemListController(APIView):
@@ -131,3 +132,10 @@ class CartController(APIView):
     def delete(self, request, user_id, cart_id):
         users_service.delete_cart(user_id, cart_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class PurchasesListController(APIView):
+    def get(self, request, user_id):
+        return Response(purchases_service.get_all(user_id))
+
+    def post(self, request, user_id):
+        return Response(purchases_service.buy(user_id))
